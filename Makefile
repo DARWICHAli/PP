@@ -12,7 +12,7 @@ override CFLAGS += -Wformat=2 -Winit-self -Wswitch-default -Wunused-parameter \
 
 # LDFLAGS
 LDFLAGS ?= $(CFLAGS)
-LDLIBS ?= -lm
+LDLIBS ?= -lm -fopenmp
 X11LIBS ?= -L/usr/X11/lib -lX11
 ###############################################################################
 ALL = problem.o solution_check.o solution_io.o solve.o util.o street_table.o

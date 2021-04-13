@@ -13,7 +13,8 @@
   #endif
 #endif
 
-int solution_check(solution_t* const s, problem_t* const p) {
+int solution_check(solution_t* const s, problem_t* const p)
+{
   /* OK: errors = 0. */
   int errors = 0;
 
@@ -21,6 +22,7 @@ int solution_check(solution_t* const s, problem_t* const p) {
   const int nb_streets = p->S;
   const int nb_inter_sol = s->A;
 
+  #pragma omp parallel for
   for(int i=0; i<nb_inter_sol; i++)
   {
     // vérifie la solution pour l'intersection num i : s->schedule[i]
@@ -28,6 +30,7 @@ int solution_check(solution_t* const s, problem_t* const p) {
     {
       fprintf(stderr, "intersection has no light (%d)\n", i);
     }
+    #pragma omp for
     for(int feu=0; feu<s->schedule[i].nb; feu++)
     {
       // s->schedule[i].t[feu] .rue et .duree sont valides
@@ -40,6 +43,8 @@ int solution_check(solution_t* const s, problem_t* const p) {
       }
       int rid;
       // vérifie que cette rue (rue) arrive bien à cette intersection (i)
+
+      #pragma omp for
       for(rid=0; rid<nb_streets; rid++)
       {
         if(p->r[rid].street_id == rue)
@@ -287,7 +292,8 @@ static int score_ascending_order(void const* r1, void const* r2) {
 int tab_street[NB_STREETS_MAX][2];
 int tab_car[NB_CARS_MAX][2];
 
-int solution_score(solution_t* s, const problem_t* const p) {
+int solution_score(solution_t* s, const problem_t* const p)
+{
   int score = 0;
 
   score = simulation_run(s, p);
@@ -300,39 +306,6 @@ int solution_score(solution_t* s, const problem_t* const p) {
     memset(tab_street, 0, NB_STREETS_MAX * 2 * sizeof(int));
     memset(tab_car, 0, NB_CARS_MAX * 2 * sizeof(int));
 
-    /*
-    for (int c = 0; c < p->V; c++) {
-      tab_car[c][0] = c;
-      int distance = car_state[c].distance;
-      for (int st = car_state[c].nb_streets + 1; st < p->c[c].P; st++) {
-        distance += p->r[p->c[c].streets[st]].len;
-      }
-      tab_car[c][1] = distance;
-    }
-    qsort(tab_car, p->V, sizeof(*tab_car), score_descending_order);
-    for (int c = 0; c < 3; c++) {
-      // Remove lights in starting street of super bad cars
-      if (tab_car[c][1] > 0) {
-        for (int i = 0; i < s->A; i++) {
-          if (s->schedule[i].nb > 1) {
-            int rue;
-            int nb_rues = s->schedule[i].nb;
-            for (rue = 0; rue < nb_rues; rue++) {
-              if (p->c[tab_car[c][0]].streets[0] == s->schedule[i].t[rue].rue) {
-                s->schedule[i].nb--;
-                break;
-              }
-            }
-            rue++;
-            for (; rue < nb_rues; rue++) {
-              s->schedule[i].t[rue - 1].rue = s->schedule[i].t[rue].rue;
-              s->schedule[i].t[rue - 1].duree = s->schedule[i].t[rue].duree;
-            }
-          }
-        }
-      }
-    }
-    */
 
     for (int street = 0; street < p->S; street++) {
       tab_street[street][0] = street;

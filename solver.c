@@ -45,11 +45,12 @@ int main(int argc, char* argv[]) {
 
 
     // on peut commencé d'ici
-
       solve(&s, &p);
       CHECK(solution_check(&s, &p) == 0);
       score = solution_score(&s, &p);
       global_score += score;
+      // on s'arrète là
+
 
       fprintf(stderr, "Score %34s: %8d\n", input[i], score);
 
@@ -71,9 +72,13 @@ int main(int argc, char* argv[]) {
 
     solve_init(&s, &p, (argc == 4)?argv[3]:NULL);
 
+
+    // same
     solve(&s, &p);
     CHECK(solution_check(&s, &p) == 0);
     score = solution_score(&s, &p);
+    // same
+
 
     fprintf(stderr, "Score %34s: %8d\n", argv[1], score);
 
