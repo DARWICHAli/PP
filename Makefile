@@ -5,14 +5,14 @@ CPPFLAGS += -I/usr/X11/include
 # CFLAGS
 CFLAGS ?= -g -O3 -march=native -flto
 override CFLAGS += -std=gnu11 -pedantic
-override CFLAGS += -Wall -Wextra
+override CFLAGS += -Wall -Wextra -fopenmp
 override CFLAGS += -Wformat=2 -Winit-self -Wswitch-default -Wunused-parameter \
 		-Wuninitialized -Wshadow -Wunsafe-loop-optimizations -Wjump-misses-init \
 		-Wlogical-op -Wredundant-decls -Wnested-externs
 
 # LDFLAGS
 LDFLAGS ?= $(CFLAGS)
-LDLIBS ?= -lm -fopenmp
+LDLIBS ?= -lm
 X11LIBS ?= -L/usr/X11/lib -lX11
 ###############################################################################
 ALL = problem.o solution_check.o solution_io.o solve.o util.o street_table.o

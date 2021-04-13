@@ -22,7 +22,7 @@ int solution_check(solution_t* const s, problem_t* const p)
   const int nb_streets = p->S;
   const int nb_inter_sol = s->A;
 
-  #pragma omp parallel for
+  //#pragma omp parallel for
   for(int i=0; i<nb_inter_sol; i++)
   {
     // vérifie la solution pour l'intersection num i : s->schedule[i]
@@ -30,7 +30,7 @@ int solution_check(solution_t* const s, problem_t* const p)
     {
       fprintf(stderr, "intersection has no light (%d)\n", i);
     }
-    #pragma omp for
+    //#pragma omp for
     for(int feu=0; feu<s->schedule[i].nb; feu++)
     {
       // s->schedule[i].t[feu] .rue et .duree sont valides
@@ -44,7 +44,7 @@ int solution_check(solution_t* const s, problem_t* const p)
       int rid;
       // vérifie que cette rue (rue) arrive bien à cette intersection (i)
 
-      #pragma omp for
+      //#pragma omp for
       for(rid=0; rid<nb_streets; rid++)
       {
         if(p->r[rid].street_id == rue)
