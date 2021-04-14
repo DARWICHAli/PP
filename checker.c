@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
+#include <omp.h>
 
 #include "check.h"
 #include "util.h"
@@ -16,7 +16,7 @@ static solution_t s;
 int main(int argc, char* argv[])
 {
     int score;
-    struct timeval tv_begin, tv_end; ;
+    struct timeval tv_begin, tv_end,inter;
 
     if (argc != 3) {
         fprintf(stderr, "usage: %s problem solution\n", argv[0]);
@@ -28,10 +28,13 @@ int main(int argc, char* argv[])
 
     gettimeofday( &tv_begin, NULL);
     CHECK(solution_check(&s, &p) == 0);
+    gettimeofday( &inter, NULL);
     score = solution_score(&s, &p);
     gettimeofday( &tv_end, NULL);
 
 
+    printf("Temps de sol_check :  %lfs\n",DIFFTEMPS(tv_begin,inter));
+    printf("Temps de sol_score:  %lfs\n",DIFFTEMPS(inter,tv_end));
     printf("Temps de check :  %lfs\n",DIFFTEMPS(tv_begin,tv_end));
     fprintf(stderr, "Score %d\n", score);
 

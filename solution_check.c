@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <omp.h>
 
 #include "check.h"
 #include "util.h"
@@ -22,7 +23,8 @@ int solution_check(solution_t* const s, problem_t* const p)
 //  const int nb_inter = p->NI;
   const int nb_streets = p->S;
   const int nb_inter_sol = s->A;
-  #pragma omp parallel for ordered
+
+  //#pragma omp parallel for
   for(int i=0; i<nb_inter_sol; i++)
   {
     // vérifie la solution pour l'intersection num i : s->schedule[i]
@@ -33,39 +35,36 @@ int solution_check(solution_t* const s, problem_t* const p)
     for(int feu =0; feu<s->schedule[i].nb; feu++)
     {
 
-      #pragma omp ordered
-      {
-
-          // s->schedule[i].t[feu] .rue et .duree sont valides
-          const int rue = s->schedule[i].t[feu].rue;
-          const char* const name = street_table_find_name(p->table, rue);
-          if(rue >= nb_streets)
-          {
+        // s->schedule[i].t[feu] .rue et .duree sont valides
+        const int rue = s->schedule[i].t[feu].rue;
+        const char* const name = street_table_find_name(p->table, rue);
+        //printf("%p %p %d \n",(void *)&rue ,(void*)&name  , omp_get_num_threads());
+        if(rue >= nb_streets)
+        {
             fprintf(stderr, "invalid street number (%d -> \"%s\")\n", rue, name);
             errors++;
-          }
-          int rid;
-          // vérifie que cette rue (rue) arrive bien à cette intersection (i)
-
-          for(rid=0; rid<nb_streets; rid++)
-          {
+        }
+        int rid;
+        // vérifie que cette rue (rue) arrive bien à cette intersection (i)
+        for(rid=0; rid<nb_streets; rid++)
+        {
+            //printf("%d\n" , omp_get_thread_num());
             if(p->r[rid].street_id == rue)
-              break;
-          }
-          // p->r[rid] contient la rue, vérifie que la rue arrive bien à cette intersection
-          if(p->r[rid].end != i)
-          {
+                break;
+        }
+        // p->r[rid] contient la rue, vérifie que la rue arrive bien à cette intersection
+        if(p->r[rid].end != i)
+        {
             fprintf(stderr, "invalid street number (%d -> \"%s\"): not arriving to the intersection %d\n", rue, name, i);
             errors++;
-          }
+        }
 
-          // durée > 0
-          if(s->schedule[i].t[feu].duree <= 0)
-          {
+        // durée > 0
+        if(s->schedule[i].t[feu].duree <= 0)
+        {
             fprintf(stderr, "invalid schedule length (intersection %d light %d -> %d)\n", i, feu, s->schedule[i].t[feu].duree);
-          }
-      }
-    }
+        }
+     }
 
   }
 
@@ -118,7 +117,7 @@ void simulation_update_intersection_lights(const solution_t* const s, int i, int
   int no_green_light = 1;
 
   // Find the light cycle total time
-  #pragma omp parallel for reduction(+:cycle)
+  //#pragma omp parallel for reduction(+:cycle)
   for (int l = 0; l < s->schedule[i].nb; l++) {
     cycle += s->schedule[i].t[l].duree;
   }
@@ -138,7 +137,7 @@ void simulation_update_intersection_lights(const solution_t* const s, int i, int
         if (tick < 0) {
           street_state[s->schedule[i].t[l].rue].green = 1;
           no_green_light = 0;
-          #pragma omp parallel for
+          //#pragma omp parallel for
           for (int next = l + 1; next < s->schedule[i].nb; next++) {
             street_state[s->schedule[i].t[next].rue].green = 0;
           }
@@ -201,6 +200,7 @@ int simulation_update_car(const problem_t* const p, int c, int T)
 
 void simulation_print_state(const problem_t* const p, int T) {
   printf("Timestep: %d\n", T);
+  #pragma omp parallel for
   for (int c = 0; c < p->V; c++) {
     printf("Car %d -> street %d, distance: %d, position: %d, "
            "arrived: %d, street#: %d\n",
@@ -211,6 +211,7 @@ void simulation_print_state(const problem_t* const p, int T) {
         car_state[c].arrived,
         car_state[c].nb_streets);
   }
+  #pragma omp parallel for
   for (int s = 0; s < p->S; s++) {
     printf("Street %d -> green: %d, nb_cars: %d, out: %d\n",
         s,
@@ -222,12 +223,13 @@ void simulation_print_state(const problem_t* const p, int T) {
 
 void simulation_dequeue(const problem_t* const p)
 {
-  #pragma omp parallel for
+    int c = 0;
+  #pragma omp parallel for private(c)
   for (int street = 0; street < p->S; street++) {
     // If there is a street to dequeue
     if (street_state[street].out == 1) {
       // If a car is in that street, dequeue it
-      for (int c = 0; c < p->V; c++) {
+      for ( c = 0; c < p->V; c++) {
         if (car_state[c].street == street) {
           car_state[c].position--;
         }
@@ -253,6 +255,8 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   simulation_init(p);
 
   // For each time step
+  omp_set_nested(true);
+  #pragma omp parallel for
   for (int T = 0; T < p->D; T++) {
     #ifdef DEBUG_SCORE
     printf("Score: %d\n", score);
@@ -261,6 +265,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     #endif
 
     // Update light state for each intersection
+    #pragma omp parallel for
     for (int i = 0; i < s->A; i++) {
       simulation_update_intersection_lights(s, i, T);
     }
@@ -272,6 +277,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
     // Update car state
     for (int c = 0; c < p->V; c++) {
+
       score += simulation_update_car(p, c, T);
     }
 
@@ -290,7 +296,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   return score;
 }
 
-
+/*
 static int score_descending_order(void const* r1, void const* r2) {
   int d1 = ((int*)r1)[1];
   int d2 = ((int*)r2)[1];
@@ -302,6 +308,7 @@ static int score_ascending_order(void const* r1, void const* r2) {
   int d2 = ((int*)r2)[1];
   return (d1 == d2) ? 0 : ((d1 < d2) ? -1 : 1);
 }
+*/
 
 int tab_street[NB_STREETS_MAX][2];
 int tab_car[NB_CARS_MAX][2];
@@ -312,10 +319,13 @@ int solution_score(solution_t* s, const problem_t* const p)
 
   score = simulation_run(s, p);
 
+
+
 #if 0
   printf("Score = %d\n", score);
 
 
+  //#pragma omp parallel for
   #pragma omp parallel for
   for (int n = 0; n <= 10; n++) {
 
@@ -350,13 +360,13 @@ int solution_score(solution_t* s, const problem_t* const p)
 
     // Add + 1 to green light time in jammed streets
     qsort(tab_street, p->S, sizeof(*tab_street), score_descending_order);
-    #pragma omp for
+    //#pragma omp for
     for (int jam = 0; jam < MIN(p->S, 5); jam++) {
       //printf("[Street %d, max %d], ", tab_street[jam][0], street_state[tab_street[jam][0]].max);
       if (tab_street[jam][1] > p->r[tab_street[jam][0]].len) {
-        #pragma omp for
+        //#pragma omp for
         for (int i = 0; i < s->A; i++) {
-          #pragma omp for
+          //#pragma omp for
           for (int rue = 0; rue < s->schedule[i].nb; rue++) {
             if (tab_street[jam][0] == s->schedule[i].t[rue].rue) {
               (s->schedule[i].t[rue].duree)+=2;
@@ -365,8 +375,7 @@ int solution_score(solution_t* s, const problem_t* const p)
         }
       }
     }
-
-    //printf("Score = %d\n", score);
+    #pragma omp singel
     score = simulation_run(s, p);
     printf("Score = %d\n", score);
   }
