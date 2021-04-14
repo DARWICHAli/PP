@@ -44,7 +44,6 @@ int main(int argc, char* argv[]) {
       solve_init(&s, &p, NULL);
 
 
-    // on peut commencé d'ici
       solve(&s, &p);
       CHECK(solution_check(&s, &p) == 0);
       score = solution_score(&s, &p);
