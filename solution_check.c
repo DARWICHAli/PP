@@ -86,7 +86,7 @@ int solution_check(solution_t* const s, problem_t* const p )
   MPI_Reduce(&errors, &sum_errors, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   if(rang == 0)
     printf("%d\n",sum_errors );
-  printf("%d\n",errors );
+  //printf("%d\n",errors );
 
   /* OK */
   return errors;
