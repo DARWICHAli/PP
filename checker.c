@@ -16,6 +16,7 @@ static solution_t s;
 
 int main(int argc, char* argv[])
 {
+    double t1 = 0.,t2 =0.,t3 =0.;
     int score;
     int rang =0, size;
     struct timeval tv_begin, tv_end,inter;
@@ -37,24 +38,25 @@ int main(int argc, char* argv[])
     MPI_Comm_size( MPI_COMM_WORLD, &size );
     //printf("%d\n",size );
     MPI_Barrier(MPI_COMM_WORLD);
-     if(rang == 0)
-        gettimeofday( &tv_begin, NULL);
+
+    if(rang == 0)
+        t1 = MPI_Wtime();
     CHECK(solution_check(&s, &p) == 0);
     if(rang == 0)
-        gettimeofday( &inter, NULL);
+       t2 = MPI_Wtime();
     score = solution_score(&s, &p);
     if(rang == 0)
-        gettimeofday( &tv_end, NULL);
+       t3 = MPI_Wtime();
 
     MPI_Barrier(MPI_COMM_WORLD);
 
     //on a size score ....
     if(rang == 0)
     {
-        printf("Temps de sol_check :  %lfs\n",DIFFTEMPS(tv_begin,inter));
-        printf("Temps de sol_score:  %lfs\n",DIFFTEMPS(inter,tv_end));
-        printf("Temps de check :  %lfs\n",DIFFTEMPS(tv_begin,tv_end));
-
+        // printf("Temps de sol_check :  %lfs\n",DIFFTEMPS(tv_begin,inter));
+        // printf("Temps de sol_score:  %lfs\n",DIFFTEMPS(inter,tv_end));
+        // printf("Temps de check :  %lfs\n",DIFFTEMPS(tv_begin,tv_end));
+        printf("%lgs\n", t2-t1 );
         printf("\n");
         //fprintf(stderr, "Score %d\n", score);
 
