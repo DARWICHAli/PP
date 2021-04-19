@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <mpi.h>
+
 
 typedef enum street_table_sorting_type {
   st_none = 0,

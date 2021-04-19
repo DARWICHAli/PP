@@ -15,6 +15,8 @@
 #include <stdio.h>  // For fprintf, perror
 #include <stdlib.h> // For exit
 #include <errno.h>
+#include <mpi.h>
+
 
 #define CHECK(x) \
   do { \

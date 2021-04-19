@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 #include <tgmath.h>
+#include <mpi.h>
+
 
 #include "problem.h"
 

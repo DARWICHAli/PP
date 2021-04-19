@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <omp.h>
+#include <mpi.h>
 
 #include "check.h"
 #include "util.h"
@@ -24,47 +25,52 @@ int solution_check(solution_t* const s, problem_t* const p)
   const int nb_streets = p->S;
   const int nb_inter_sol = s->A;
 
-  //#pragma omp parallel for
+  #pragma omp parallel for ordered
   for(int i=0; i<nb_inter_sol; i++)
   {
-    // vérifie la solution pour l'intersection num i : s->schedule[i]
-    if(s->schedule[i].nb < 1)
-    {
-      fprintf(stderr, "intersection has no light (%d)\n", i);
-    }
-    for(int feu =0; feu<s->schedule[i].nb; feu++)
-    {
 
-        // s->schedule[i].t[feu] .rue et .duree sont valides
-        const int rue = s->schedule[i].t[feu].rue;
-        const char* const name = street_table_find_name(p->table, rue);
-        //printf("%p %p %d \n",(void *)&rue ,(void*)&name  , omp_get_num_threads());
-        if(rue >= nb_streets)
-        {
-            fprintf(stderr, "invalid street number (%d -> \"%s\")\n", rue, name);
-            errors++;
-        }
-        int rid;
-        // vérifie que cette rue (rue) arrive bien à cette intersection (i)
-        for(rid=0; rid<nb_streets; rid++)
-        {
-            //printf("%d\n" , omp_get_thread_num());
-            if(p->r[rid].street_id == rue)
-                break;
-        }
-        // p->r[rid] contient la rue, vérifie que la rue arrive bien à cette intersection
-        if(p->r[rid].end != i)
-        {
-            fprintf(stderr, "invalid street number (%d -> \"%s\"): not arriving to the intersection %d\n", rue, name, i);
-            errors++;
-        }
+     #pragma omp ordered
+     {
+         // vérifie la solution pour l'intersection num i : s->schedule[i]
+         if(s->schedule[i].nb < 1)
+         {
+           fprintf(stderr, "intersection has no light (%d)\n", i);
+         }
+         for(int feu =0; feu<s->schedule[i].nb; feu++)
+         {
 
-        // durée > 0
-        if(s->schedule[i].t[feu].duree <= 0)
-        {
-            fprintf(stderr, "invalid schedule length (intersection %d light %d -> %d)\n", i, feu, s->schedule[i].t[feu].duree);
-        }
+             // s->schedule[i].t[feu] .rue et .duree sont valides
+             const int rue = s->schedule[i].t[feu].rue;
+             const char* const name = street_table_find_name(p->table, rue);
+             //printf("%p %p %d \n",(void *)&rue ,(void*)&name  , omp_get_num_threads());
+             if(rue >= nb_streets)
+             {
+                 fprintf(stderr, "invalid street number (%d -> \"%s\")\n", rue, name);
+                 errors++;
+             }
+             int rid;
+             // vérifie que cette rue (rue) arrive bien à cette intersection (i)
+             for(rid=0; rid<nb_streets; rid++)
+             {
+                 //printf("%d\n" , omp_get_thread_num());
+                 if(p->r[rid].street_id == rue)
+                     break;
+             }
+             // p->r[rid] contient la rue, vérifie que la rue arrive bien à cette intersection
+             if(p->r[rid].end != i)
+             {
+                 fprintf(stderr, "invalid street number (%d -> \"%s\"): not arriving to the intersection %d\n", rue, name, i);
+                 errors++;
+             }
+
+             // durée > 0
+             if(s->schedule[i].t[feu].duree <= 0)
+             {
+                 fprintf(stderr, "invalid schedule length (intersection %d light %d -> %d)\n", i, feu, s->schedule[i].t[feu].duree);
+             }
+          }
      }
+
 
   }
 

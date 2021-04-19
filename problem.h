@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "street_table.h"
+#include <mpi.h>
+
 
 // #define NB_BOOKS_MAX 100000
 // #define NB_LIBS_MAX 30000
