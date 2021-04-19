@@ -2,7 +2,7 @@
 #define __UTIL_H__
 
 #include <stdio.h>
-#include <mpi.h>
+//#include <mpi.h>
 #include "solution.h"
 #include "problem.h"
 

@@ -17,7 +17,7 @@ static solution_t s;
 int main(int argc, char* argv[])
 {
     int score;
-    int rang , size;
+    int rang =0, size;
     struct timeval tv_begin, tv_end,inter;
 
     if (argc != 3) {
@@ -28,23 +28,23 @@ int main(int argc, char* argv[])
     CHECK(problem_read(argv[1], &p) == 0);
     CHECK(solution_read(argv[2], &s, &p) == 0);
 
-    if( MPI_Init(NULL, NULL))
-    {
-    	fprintf(stderr, "Erreur MPI_Init\n" );
-    	exit(1);
-    }
-    MPI_Comm_rank( MPI_COMM_WORLD, &rang );
-    MPI_Comm_size( MPI_COMM_WORLD, &size );
+    // if( MPI_Init(NULL, NULL))
+    // {
+    // 	fprintf(stderr, "Erreur MPI_Init\n" );
+    // 	exit(1);
+    // }
+    // MPI_Comm_rank( MPI_COMM_WORLD, &rang );
+    // MPI_Comm_size( MPI_COMM_WORLD, &size );
 
-    if(rang == 0)
+    //if(rang == 0)
         gettimeofday( &tv_begin, NULL);
-    if(rang ==0)
+    //if(rang ==0)
         CHECK(solution_check(&s, &p) == 0);
-    if(rang == 0)
+    //if(rang == 0)
         gettimeofday( &inter, NULL);
-    if(rang == 0)
+    //if(rang == 0)
         score = solution_score(&s, &p);
-    if(rang == 0)
+    //if(rang == 0)
         gettimeofday( &tv_end, NULL);
 
 
@@ -54,13 +54,14 @@ int main(int argc, char* argv[])
         printf("Temps de sol_check :  %lfs\n",DIFFTEMPS(tv_begin,inter));
         printf("Temps de sol_score:  %lfs\n",DIFFTEMPS(inter,tv_end));
         printf("Temps de check :  %lfs\n",DIFFTEMPS(tv_begin,tv_end));
-        fprintf(stderr, "Score %d\n", score);
+        printf("\n");
+        //fprintf(stderr, "Score %d\n", score);
 
         // Write the score file
         util_write_score(argv[2], score);
     }
 
 
-    MPI_Finalize();
+    //MPI_Finalize();
     return(0);
 }

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <omp.h>
-#include <mpi.h>
+//#include <mpi.h>
 
 #include "check.h"
 #include "util.h"
@@ -24,24 +24,32 @@ int solution_check(solution_t* const s, problem_t* const p)
 //  const int nb_inter = p->NI;
   const int nb_streets = p->S;
   const int nb_inter_sol = s->A;
+  int feu ;
 
-  #pragma omp parallel for ordered
+
+  #pragma omp parallel for reduction(+:errors) private(feu)
   for(int i=0; i<nb_inter_sol; i++)
   {
 
-     #pragma omp ordered
-     {
+     // #pragma omp ordered
+     // {
          // vérifie la solution pour l'intersection num i : s->schedule[i]
          if(s->schedule[i].nb < 1)
          {
            fprintf(stderr, "intersection has no light (%d)\n", i);
          }
-         for(int feu =0; feu<s->schedule[i].nb; feu++)
+         for(feu =0; feu<s->schedule[i].nb; feu++)
          {
 
+             int rue;
+             char* name;
              // s->schedule[i].t[feu] .rue et .duree sont valides
-             const int rue = s->schedule[i].t[feu].rue;
-             const char* const name = street_table_find_name(p->table, rue);
+             #pragma omp critical
+             {
+                 rue = s->schedule[i].t[feu].rue;
+                 name =(char *) street_table_find_name(p->table, rue);
+             }
+
              //printf("%p %p %d \n",(void *)&rue ,(void*)&name  , omp_get_num_threads());
              if(rue >= nb_streets)
              {
@@ -69,7 +77,7 @@ int solution_check(solution_t* const s, problem_t* const p)
                  fprintf(stderr, "invalid schedule length (intersection %d light %d -> %d)\n", i, feu, s->schedule[i].t[feu].duree);
              }
           }
-     }
+     // }
 
 
   }
@@ -191,7 +199,7 @@ int simulation_update_car(const problem_t* const p, int c, int T)
     // Remove the car immediately from the street
     street_state[car_state[c].street].nb_cars--;
     // If another car is in that street and was there before that car, dequeue it
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (int i = 0; i < p->V; i++) {
       if ((car_state[c].street == car_state[i].street) &&
           (car_state[c].position < car_state[i].position)) {
@@ -230,7 +238,7 @@ void simulation_print_state(const problem_t* const p, int T) {
 void simulation_dequeue(const problem_t* const p)
 {
     int c = 0;
-  #pragma omp parallel for private(c)
+  //#pragma omp parallel for private(c)
   for (int street = 0; street < p->S; street++) {
     // If there is a street to dequeue
     if (street_state[street].out == 1) {
@@ -261,8 +269,9 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   simulation_init(p);
 
   // For each time step
-  omp_set_nested(true);
-  #pragma omp parallel for
+  //omp_set_nested(true);
+  int i= 0;
+  #pragma omp parallel for private(i) schedule(dynamic)
   for (int T = 0; T < p->D; T++) {
     #ifdef DEBUG_SCORE
     printf("Score: %d\n", score);
@@ -271,8 +280,8 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     #endif
 
     // Update light state for each intersection
-    #pragma omp parallel for
-    for (int i = 0; i < s->A; i++) {
+    //#pragma omp parallel for
+    for (i = 0; i < s->A; i++) {
       simulation_update_intersection_lights(s, i, T);
     }
 
@@ -282,6 +291,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     #endif
 
     // Update car state
+    //#pragma omp parallel for reduction(+:score)
     for (int c = 0; c < p->V; c++) {
 
       score += simulation_update_car(p, c, T);
