@@ -296,8 +296,6 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   #pragma omp parallel for private(i) schedule(dynamic)
   for (int T = rang*(N_dyn/size);  T < temp; T++) {
    // printf("%d  ",T);
-    if(T == (rang +1) *(p->D/size)-1)
-	    printf("\n");
     #ifdef DEBUG_SCORE
     printf("Score: %d\n", score);
     printf("- 1 Init:\n");
