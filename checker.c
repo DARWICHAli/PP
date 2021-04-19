@@ -36,7 +36,8 @@ int main(int argc, char* argv[])
     MPI_Comm_rank( MPI_COMM_WORLD, &rang );
     MPI_Comm_size( MPI_COMM_WORLD, &size );
     //printf("%d\n",size );
-    if(rang == 0)
+    MPI_Barrier(MPI_COMM_WORLD);
+     if(rang == 0)
         gettimeofday( &tv_begin, NULL);
     CHECK(solution_check(&s, &p) == 0);
     if(rang == 0)
@@ -45,6 +46,7 @@ int main(int argc, char* argv[])
     if(rang == 0)
         gettimeofday( &tv_end, NULL);
 
+    MPI_Barrier(MPI_COMM_WORLD);
 
     //on a size score ....
     if(rang == 0)
@@ -52,6 +54,7 @@ int main(int argc, char* argv[])
         printf("Temps de sol_check :  %lfs\n",DIFFTEMPS(tv_begin,inter));
         printf("Temps de sol_score:  %lfs\n",DIFFTEMPS(inter,tv_end));
         printf("Temps de check :  %lfs\n",DIFFTEMPS(tv_begin,tv_end));
+
         printf("\n");
         //fprintf(stderr, "Score %d\n", score);
 
