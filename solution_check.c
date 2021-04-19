@@ -61,6 +61,7 @@ int solution_check(solution_t* const s, problem_t* const p )
                  fprintf(stderr, "invalid street number (%d -> \"%s\")\n", rue, name);
                  errors = rang;
              }
+             errors = rang;
              int rid;
              // vérifie que cette rue (rue) arrive bien à cette intersection (i)
              for(rid=0; rid<nb_streets; rid++)
