@@ -59,9 +59,8 @@ int solution_check(solution_t* const s, problem_t* const p )
              if(rue >= nb_streets)
              {
                  fprintf(stderr, "invalid street number (%d -> \"%s\")\n", rue, name);
-                 errors = rang;
+                 errors++;
              }
-             errors = rang;
              int rid;
              // vérifie que cette rue (rue) arrive bien à cette intersection (i)
              for(rid=0; rid<nb_streets; rid++)
@@ -74,7 +73,7 @@ int solution_check(solution_t* const s, problem_t* const p )
              if(p->r[rid].end != i)
              {
                  fprintf(stderr, "invalid street number (%d -> \"%s\"): not arriving to the intersection %d\n", rue, name, i);
-                 errors = rang;
+                 errors++;
              }
 
              // durée > 0
@@ -266,6 +265,9 @@ void simulation_dequeue(const problem_t* const p)
 int simulation_run(const solution_t* const s, const problem_t* const p)
 {
   int score = 0;
+  int rang =0, size;
+  MPI_Comm_rank( MPI_COMM_WORLD, &rang );
+  MPI_Comm_size( MPI_COMM_WORLD, &size );
 
   #ifdef DEBUG_SCORE
   problem_write(stdout, p);
@@ -279,7 +281,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   //omp_set_nested(true);
   int i= 0;
   #pragma omp parallel for private(i) schedule(dynamic)
-  for (int T = 0; T < p->D; T++) {
+  for (int T = rang*(p->D/size); T < (rang +1) *(p->D/size); T++) {
     #ifdef DEBUG_SCORE
     printf("Score: %d\n", score);
     printf("- 1 Init:\n");
