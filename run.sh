@@ -1,9 +1,9 @@
-
-
 ./checker input/a.txt out/a_best.out
 ./checker input/b.txt out/b_best.out
+./checker input/blong.txt out/blong_best.out
 ./checker input/c.txt out/c_best.out
+./checker input/clong.txt out/clong_best.out
 ./checker input/d.txt out/d_best.out
+./checker input/dlong.txt out/dlong_best.out
 ./checker input/e.txt out/e_best.out
 ./checker input/f.txt out/f_best.out
-

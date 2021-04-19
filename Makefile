@@ -1,6 +1,6 @@
 ###############################################################################
 CC = mpicc
-#MCC ?= mpicc
+#CC ?= mpicc
 CPPFLAGS += -I/usr/X11/include
 
 # CFLAGS
