@@ -31,16 +31,16 @@ int solution_check(solution_t* const s, problem_t* const p )
   const int nb_inter_sol = s->A;
   int feu ;
 
-  const int N_dyn = ((p->D + size -1)/size)*size;
+  //const int N_dyn = ((p->D + size -1)/size)*size;
    //if(rang == 0)
     //      printf("%d %d\n",p->D , N_dyn);
   //printf("%d %d %d\n",size, N_dyn , p->D );
-  int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
+  //int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
   //#pragma omp parallel for private(i) schedule(dynamic)
   //for (int T = rang*(N_dyn/size);  T < temp; T++) {
 
-  #pragma omp parallel for reduction(+:errors) private(feu) schedule(dynamic)
-  for(int i=rang*(N_dyn/size); i<temp; i++)
+  #pragma omp parallel for reduction(+:errors) private(feu)
+  for(int i=rang*(nb_inter_sol/size); i<(rang +1) *(nb_inter_sol/size); i++)
   {
 
      // #pragma omp ordered
