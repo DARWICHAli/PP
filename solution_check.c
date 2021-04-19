@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <omp.h>
-//#include <mpi.h>
+#include <mpi.h>
 
 #include "check.h"
 #include "util.h"
@@ -16,19 +16,23 @@
 #endif
 //#define DEBUG_SCORE
 
-int solution_check(solution_t* const s, problem_t* const p)
+int solution_check(solution_t* const s, problem_t* const p )
 {
+    int rang =0, size;
+    MPI_Comm_rank( MPI_COMM_WORLD, &rang );
+    MPI_Comm_size( MPI_COMM_WORLD, &size );
+    //printf("%d %d\n",size , rang );
   /* OK: errors = 0. */
   int errors = 0;
 
-//  const int nb_inter = p->NI;
+  //  const int nb_inter = p->NI;
   const int nb_streets = p->S;
   const int nb_inter_sol = s->A;
   int feu ;
 
 
   #pragma omp parallel for reduction(+:errors) private(feu)
-  for(int i=0; i<nb_inter_sol; i++)
+  for(int i=rang*(nb_inter_sol/size); i<(rang +1) *(nb_inter_sol/size); i++)
   {
 
      // #pragma omp ordered
@@ -44,11 +48,11 @@ int solution_check(solution_t* const s, problem_t* const p)
              int rue;
              char* name;
              // s->schedule[i].t[feu] .rue et .duree sont valides
-             #pragma omp critical
-             {
+             // #pragma omp critical
+             // {
                  rue = s->schedule[i].t[feu].rue;
                  name =(char *) street_table_find_name(p->table, rue);
-             }
+             //}
 
              //printf("%p %p %d \n",(void *)&rue ,(void*)&name  , omp_get_num_threads());
              if(rue >= nb_streets)
@@ -77,10 +81,11 @@ int solution_check(solution_t* const s, problem_t* const p)
                  fprintf(stderr, "invalid schedule length (intersection %d light %d -> %d)\n", i, feu, s->schedule[i].t[feu].duree);
              }
           }
-     // }
-
-
   }
+  MPI_Reduce(&errors, &errors, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  if(rang == 0)
+    printf("%d\n",errors );
+  printf("%d\n",errors );
 
   /* OK */
   return errors;

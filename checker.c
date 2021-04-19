@@ -28,23 +28,21 @@ int main(int argc, char* argv[])
     CHECK(problem_read(argv[1], &p) == 0);
     CHECK(solution_read(argv[2], &s, &p) == 0);
 
-    // if( MPI_Init(NULL, NULL))
-    // {
-    // 	fprintf(stderr, "Erreur MPI_Init\n" );
-    // 	exit(1);
-    // }
-    // MPI_Comm_rank( MPI_COMM_WORLD, &rang );
-    // MPI_Comm_size( MPI_COMM_WORLD, &size );
-
-    //if(rang == 0)
+    if( MPI_Init(NULL, NULL))
+    {
+    	fprintf(stderr, "Erreur MPI_Init\n" );
+    	exit(1);
+    }
+    MPI_Comm_rank( MPI_COMM_WORLD, &rang );
+    MPI_Comm_size( MPI_COMM_WORLD, &size );
+    //printf("%d\n",size );
+    if(rang == 0)
         gettimeofday( &tv_begin, NULL);
-    //if(rang ==0)
-        CHECK(solution_check(&s, &p) == 0);
-    //if(rang == 0)
+    CHECK(solution_check(&s, &p) == 0);
+    if(rang == 0)
         gettimeofday( &inter, NULL);
-    //if(rang == 0)
-        score = solution_score(&s, &p);
-    //if(rang == 0)
+    score = solution_score(&s, &p);
+    if(rang == 0)
         gettimeofday( &tv_end, NULL);
 
 
@@ -62,6 +60,6 @@ int main(int argc, char* argv[])
     }
 
 
-    //MPI_Finalize();
+    MPI_Finalize();
     return(0);
 }
