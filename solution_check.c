@@ -39,7 +39,7 @@ int solution_check(solution_t* const s, problem_t* const p )
   //#pragma omp parallel for private(i) schedule(dynamic)
   //for (int T = rang*(N_dyn/size);  T < temp; T++) {
 
-  #pragma omp parallel for reduction(+:errors) private(feu)
+  #pragma omp parallel for reduction(+:errors) private(feu) schedule(dynamic)
   for(int i=rang*(N_dyn/size); i<temp; i++)
   {
 
