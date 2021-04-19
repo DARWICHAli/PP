@@ -59,7 +59,7 @@ int solution_check(solution_t* const s, problem_t* const p )
              if(rue >= nb_streets)
              {
                  fprintf(stderr, "invalid street number (%d -> \"%s\")\n", rue, name);
-                 errors++;
+                 errors = rang;
              }
              int rid;
              // vérifie que cette rue (rue) arrive bien à cette intersection (i)
@@ -73,7 +73,7 @@ int solution_check(solution_t* const s, problem_t* const p )
              if(p->r[rid].end != i)
              {
                  fprintf(stderr, "invalid street number (%d -> \"%s\"): not arriving to the intersection %d\n", rue, name, i);
-                 errors++;
+                 errors = rang;
              }
 
              // durée > 0
@@ -84,8 +84,8 @@ int solution_check(solution_t* const s, problem_t* const p )
           }
   }
   MPI_Reduce(&errors, &sum_errors, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-  if(rang == 0)
-    printf("%d\n",sum_errors );
+  // if(rang == 0)
+  //   printf("%d\n",sum_errors );
   //printf("%d\n",errors );
 
   /* OK */
