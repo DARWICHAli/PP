@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
         printf("Temps de sol_score:  %lgs\n",t3-t2 );
         printf("Temps de check :  %lgs\n",t3-t1 );
         printf("\n");
-        //fprintf(stderr, "Score %d\n", score);
+        fprintf(stderr, "Score %d\n", score);
 
         // Write the score file
         util_write_score(argv[2], score);

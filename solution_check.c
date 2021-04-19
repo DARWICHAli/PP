@@ -31,6 +31,13 @@ int solution_check(solution_t* const s, problem_t* const p )
   const int nb_inter_sol = s->A;
   int feu ;
 
+  //const int N_dyn = ((p->D + size -1)/size)*size;
+   //if(rang == 0)
+    //      printf("%d %d\n",p->D , N_dyn);
+  //printf("%d %d %d\n",size, N_dyn , p->D );
+  //int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
+  //#pragma omp parallel for private(i) schedule(dynamic)
+  //for (int T = rang*(N_dyn/size);  T < temp; T++) {
 
   #pragma omp parallel for reduction(+:errors) private(feu)
   for(int i=rang*(nb_inter_sol/size); i<(rang +1) *(nb_inter_sol/size); i++)
@@ -282,9 +289,15 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   //omp_set_nested(true);
   int i= 0;
   const int N_dyn = ((p->D + size -1)/size)*size;
-  printf("%d %d %d\n",size N_dyn , p->D );
+  // if(rang == 0)
+   //       printf("%d %d\n",p->D , N_dyn);
+  //printf("%d %d %d\n",size, N_dyn , p->D );
+  int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
   #pragma omp parallel for private(i) schedule(dynamic)
-  for (int T = rang*(p->D/size); T < (rang +1) *(p->D/size); T++) {
+  for (int T = rang*(N_dyn/size);  T < temp; T++) {
+   // printf("%d  ",T);
+    if(T == (rang +1) *(p->D/size)-1)
+	    printf("\n");
     #ifdef DEBUG_SCORE
     printf("Score: %d\n", score);
     printf("- 1 Init:\n");
