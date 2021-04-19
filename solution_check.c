@@ -24,6 +24,7 @@ int solution_check(solution_t* const s, problem_t* const p )
     //printf("%d %d\n",size , rang );
   /* OK: errors = 0. */
   int errors = 0;
+  int sum_errors = 0;
 
   //  const int nb_inter = p->NI;
   const int nb_streets = p->S;
@@ -48,11 +49,11 @@ int solution_check(solution_t* const s, problem_t* const p )
              int rue;
              char* name;
              // s->schedule[i].t[feu] .rue et .duree sont valides
-             // #pragma omp critical
-             // {
+              #pragma omp critical
+              {
                  rue = s->schedule[i].t[feu].rue;
                  name =(char *) street_table_find_name(p->table, rue);
-             //}
+             }
 
              //printf("%p %p %d \n",(void *)&rue ,(void*)&name  , omp_get_num_threads());
              if(rue >= nb_streets)
@@ -82,9 +83,9 @@ int solution_check(solution_t* const s, problem_t* const p )
              }
           }
   }
-  MPI_Reduce(&errors, &errors, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&errors, &sum_errors, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   if(rang == 0)
-    printf("%d\n",errors );
+    printf("%d\n",sum_errors );
   printf("%d\n",errors );
 
   /* OK */
