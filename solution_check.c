@@ -269,6 +269,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   MPI_Comm_rank( MPI_COMM_WORLD, &rang );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
 
+
   #ifdef DEBUG_SCORE
   problem_write(stdout, p);
   solution_write(stdout, s, p);
@@ -280,6 +281,8 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   // For each time step
   //omp_set_nested(true);
   int i= 0;
+  const int N_dyn = ((p->D + size -1)/size)*size;
+  printf("%d %d %d\n",size N_dyn , p->D );
   #pragma omp parallel for private(i) schedule(dynamic)
   for (int T = rang*(p->D/size); T < (rang +1) *(p->D/size); T++) {
     #ifdef DEBUG_SCORE
