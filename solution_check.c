@@ -311,8 +311,8 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
   MPI_Type_create_struct(streetnitems, streetblocklengths, streetoffsets, streettypes, &mpi_street_t);
   MPI_Type_commit(&mpi_street_t);
-  MPI_Type_create_struct(carnitems, carblocklengths, caroffsets, caroffsets, &mpi_car_type);
-  MPI_Type_commit(&mpi_car_type);
+  MPI_Type_create_struct(carnitems, carblocklengths, caroffsets, caroffsets, &mpi_car_t);
+  MPI_Type_commit(&mpi_car_t);
 
 
   int i= 0;
