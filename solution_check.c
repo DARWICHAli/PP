@@ -174,13 +174,6 @@ void simulation_update_intersection_lights(const solution_t* const s, int i, int
 int simulation_update_car(const problem_t* const p, int c, int T)
 {
 
-    int senderrnak = -1;
-    int x = 0;
-    int rang;
-    MPI_Comm_rank( MPI_COMM_WORLD, &rang );
-
-
-
   // If already arrived, nothing to do
   if (car_state[c].arrived == 1)
     return 0;
@@ -189,8 +182,6 @@ int simulation_update_car(const problem_t* const p, int c, int T)
   if ((car_state[c].distance == 0) &&
       (street_state[car_state[c].street].green == 1) &&
       (car_state[c].position == 1)) {
-    senderrnak = rang ;
-    x++;
     // Update number of street finished
     car_state[c].nb_streets++;
     // Signal a car left the street
@@ -203,7 +194,6 @@ int simulation_update_car(const problem_t* const p, int c, int T)
 
     if (street_state[car_state[c].street].nb_cars > street_state[car_state[c].street].max)
     {
-        x++;
         street_state[car_state[c].street].max = street_state[car_state[c].street].nb_cars;
     }
     car_state[c].position = street_state[car_state[c].street].nb_cars;
@@ -230,14 +220,6 @@ int simulation_update_car(const problem_t* const p, int c, int T)
     }
     return p->F + (p->D - (T + 1));
   }
-
-  if(senderrnak  != -1)
-  {
-      if(senderrnak == rang)
-          MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_type, rang, MPI_COMM_WORLD);
-          
-  }
-
 
   return 0;
 }
@@ -303,75 +285,63 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
 
   // Create the datatype
-  MPI_Datatype mpi_street_type;
-  MPI_Datatype mpi_car_type;
-  MPI_Type_contiguous(4, MPI_INT, &mpi_street_type);
-  MPI_Type_commit(&mpi_street_type);
-  MPI_Type_contiguous(5, MPI_INT, &mpi_car_type);
-  MPI_Type_commit(&mpi_car_type);
+  // MPI_Datatype mpi_street_type;
+  // MPI_Datatype mpi_car_type;
+  // MPI_Type_contiguous(4, MPI_INT, &mpi_street_type);
+  // MPI_Type_commit(&mpi_street_type);
+  // MPI_Type_contiguous(5, MPI_INT, &mpi_car_type);
+  // MPI_Type_commit(&mpi_car_type);
   //MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_type, 0, MPI_COMM_WORLD);
 
   int i= 0;
-  const int N_dyn = ((p->D + size -1)/size)*size;
+  //const int N_dyn = ((p->D + size -1)/size)*size;
 
   int c;
-  int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
-  #pragma omp parallel for private(i,c) reduction(+:score) schedule(dynamic)
-  for (int T = rang*(N_dyn/size);  T < temp; T++) {
-    #ifdef DEBUG_SCORE
-    printf("Score: %d\n", score);
-    printf("- 1 Init:\n");
-    simulation_print_state(p, T);
-    #endif
+  if(rang == 0)
+  {
+      //int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
+      #pragma omp parallel for private(i,c) reduction(+:score) schedule(dynamic)
+      for (int T = 0;  T < p->D; T++) {
+      //for (int T = rang*(N_dyn/size);  T < temp; T++) {
+        #ifdef DEBUG_SCORE
+        printf("Score: %d\n", score);
+        printf("- 1 Init:\n");
+        simulation_print_state(p, T);
+        #endif
 
-    // Update light state for each intersection
-    //#pragma omp parallel for
-    for (i = 0; i < s->A; i++) {
-      	simulation_update_intersection_lights(s, i, T);
+        // Update light state for each intersection
+        //#pragma omp parallel for
+        for (i = 0; i < s->A; i++) {
+            simulation_update_intersection_lights(s, i, T);
+        }
+        #ifdef DEBUG_SCORE
+        printf("- 2 lights:\n");
+        simulation_print_state(p, T);
+        #endif
 
-    }
+        // Update car state
+        //#pragma omp parallel for reduction(+:score)
+        for (c = 0; c < p->V; c++) {
+        score += simulation_update_car(p, c, T);
+        }
 
-    #ifdef DEBUG_SCORE
-    printf("- 2 lights:\n");
-    simulation_print_state(p, T);
-    #endif
+        #ifdef DEBUG_SCORE
+        printf("- 3 cars (score now = %d):\n", score);
+        simulation_print_state(p, T);
+        #endif
 
-    // Update car state
-    //#pragma omp parallel for reduction(+:score)
-    for (c = 0; c < p->V; c++) {
-	score += simulation_update_car(p, c, T);
-    }
+        simulation_dequeue(p);
 
-    #ifdef DEBUG_SCORE
-    printf("- 3 cars (score now = %d):\n", score);
-    simulation_print_state(p, T);
-    #endif
-
-    simulation_dequeue(p);
-
-    #ifdef DEBUG_SCORE
-    printf("- 4 queues:\n");
-    simulation_print_state(p, T);
-    #endif
+        #ifdef DEBUG_SCORE
+        printf("- 4 queues:\n");
+        simulation_print_state(p, T);
+        #endif
+      }
   }
-
 
   return score;
 }
 
-/*
-static int score_descending_order(void const* r1, void const* r2) {
-  int d1 = ((int*)r1)[1];
-  int d2 = ((int*)r2)[1];
-  return (d1 == d2) ? 0 : ((d1 > d2) ? -1 : 1);
-}
-
-static int score_ascending_order(void const* r1, void const* r2) {
-  int d1 = ((int*)r1)[1];
-  int d2 = ((int*)r2)[1];
-  return (d1 == d2) ? 0 : ((d1 < d2) ? -1 : 1);
-}
-*/
 
 int tab_street[NB_STREETS_MAX][2];
 int tab_car[NB_CARS_MAX][2];
