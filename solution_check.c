@@ -292,8 +292,9 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   // if(rang == 0)
    //       printf("%d %d\n",p->D , N_dyn);
   //printf("%d %d %d\n",size, N_dyn , p->D );
+  int c;
   int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
-  #pragma omp parallel for private(i) schedule(dynamic)
+  #pragma omp parallel for private(i,c) reduction(+:score) schedule(dynamic)
   for (int T = rang*(N_dyn/size);  T < temp; T++) {
    // printf("%d  ",T);
     #ifdef DEBUG_SCORE
@@ -315,7 +316,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
     // Update car state
     //#pragma omp parallel for reduction(+:score)
-    for (int c = 0; c < p->V; c++) {
+    for (c = 0; c < p->V; c++) {
 
       score += simulation_update_car(p, c, T);
     }
@@ -360,7 +361,7 @@ int solution_score(solution_t* s, const problem_t* const p)
   int size;
   MPI_Comm_size( MPI_COMM_WORLD, &size );
   score = simulation_run(s, p);
-  printf("%d\n",score );
+  //printf("%d\n",score );
   MPI_Reduce(&score, &sum_score, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
 
