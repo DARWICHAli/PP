@@ -297,8 +297,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   //const int N_dyn = ((p->D + size -1)/size)*size;
 
   int c;
-  if(rang == 0)
-  {
+      //printf("%d\n", rang);  
       //int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
       #pragma omp parallel for private(i,c) reduction(+:score) schedule(dynamic)
       for (int T = 0;  T < p->D; T++) {
@@ -337,7 +336,6 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
         simulation_print_state(p, T);
         #endif
       }
-  }
 
   return score;
 }

@@ -17,7 +17,7 @@ static solution_t s;
 int main(int argc, char* argv[])
 {
     double t1 = 0.,t2 =0.,t3 =0.;
-    int score = 0,sum_score = 0;
+    int score = 0/*,sum_score = 0*/;
     int rang =0, size;
     //struct timeval tv_begin, tv_end,inter;
 
@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
     CHECK(solution_check(&s, &p) == 0);
     if(rang == 0)
        t2 = MPI_Wtime();
-    score = solution_score(&s, &p);
+    if(rang ==0)
+	    score = solution_score(&s, &p);
     if(rang == 0)
        t3 = MPI_Wtime();
 
@@ -52,17 +53,17 @@ int main(int argc, char* argv[])
 
 
     //printf("proc no°= %d score : %d\n",rang,score);
-    MPI_Reduce(&score, &sum_score, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    //MPI_Reduce(&score, &sum_score, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     //on a size score ....
     if(rang == 0)
     {
         fprintf(stderr,"Temps de sol_check :  %lgs\n",t2-t1 );
         fprintf(stderr,"Temps de sol_score:  %lgs\n",t3-t2 );
         fprintf(stderr,"Temps de check :  %lgs\n",t3-t1 );
-        fprintf(stderr, "Score %d\n\n", sum_score);
+        fprintf(stderr, "Score %d\n\n", score);
 
         // Write the score file
-        util_write_score(argv[2], sum_score);
+        util_write_score(argv[2], score);
     }
 
 
