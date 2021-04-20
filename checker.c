@@ -51,15 +51,15 @@ int main(int argc, char* argv[])
     MPI_Barrier(MPI_COMM_WORLD);
 
 
-    printf("proc no°= %d score : %d\n",rang,score);
+    //printf("proc no°= %d score : %d\n",rang,score);
     MPI_Reduce(&score, &sum_score, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     //on a size score ....
     if(rang == 0)
     {
-        printf("Temps de sol_check :  %lgs\n",t2-t1 );
-        printf("Temps de sol_score:  %lgs\n",t3-t2 );
-        printf("Temps de check :  %lgs\n",t3-t1 );
-        fprintf(stderr, "Score %d\n", sum_score);
+        fprintf(stderr,"Temps de sol_check :  %lgs\n",t2-t1 );
+        fprintf(stderr,"Temps de sol_score:  %lgs\n",t3-t2 );
+        fprintf(stderr,"Temps de check :  %lgs\n",t3-t1 );
+        fprintf(stderr, "Score %d\n\n", sum_score);
 
         // Write the score file
         util_write_score(argv[2], sum_score);
