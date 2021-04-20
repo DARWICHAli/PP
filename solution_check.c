@@ -123,7 +123,7 @@ void simulation_init(const problem_t* const p)
 {
   memset(car_state, 0, NB_CARS_MAX * sizeof(car_state_t));
   memset(street_state, 0, NB_STREETS_MAX * sizeof(street_state_t));
-  #pragma omp parallel for
+  //#pragma omp parallel for
   for (int i = 0; i < p->V; i++) {
     car_state[i].street = p->c[i].streets[0];
     car_state[i].distance = 0;
