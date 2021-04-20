@@ -290,11 +290,14 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   //omp_set_nested(true);
   int i= 0;
   const int N_dyn = ((p->D + size -1)/size)*size;
-  // if(rang == 0)
-   //       printf("%d %d\n",p->D , N_dyn);
-  //printf("%d %d %d\n",size, N_dyn , p->D );
+  const int N_dyn2 = ((s->A + size -1)/size)*size;
+  const int N_dyn3 = ((p->V + size -1)/size)*size;
+
   int c;
   int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
+  int temp2 = ((rang +1) *(N_dyn2/size))  > s->A ? s->A : ((rang +1) *(N_dyn2/size)) ;
+  int temp3 = ((rang +1) *(N_dyn3/size))  > p->V ? p->V : ((rang +1) *(N_dyn3/size)) ;
+
   #pragma omp parallel for private(i,c) reduction(+:score) schedule(dynamic)
   for (int T = rang*(N_dyn/size);  T < temp; T++) {
     #ifdef DEBUG_SCORE
@@ -305,7 +308,8 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
     // Update light state for each intersection
     //#pragma omp parallel for
-    for (i = 0; i < s->A; i++) {
+    //itr s->A / size
+    for (i = rang*(N_dyn/size) ; i < temp2; i++) {
       	simulation_update_intersection_lights(s, i, T);
     }
 
@@ -317,7 +321,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
     // Update car state
     //#pragma omp parallel for reduction(+:score)
-    for (c = 0; c < p->V; c++) {
+    for (c = rang*(N_dyn/size); c < temp3; c++) {
 	score += simulation_update_car(p, c, T);
        // printf("%d , %d ,  %d ,%d\n",rang ,score, c , T);
     }
@@ -335,7 +339,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     #endif
   }
 
-    
+
   //printf("score in sim_run %d\n",score );
   //MPI_Barrier(MPI_COMM_WORLD);
   return score;
