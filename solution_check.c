@@ -288,16 +288,40 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
   // For each time step
   //omp_set_nested(true);
+  MPI_Datatype mpi_street_t;
+  MPI_Datatype mpi_car_t;
+  const int streetnitems = 4;
+  const int carnitems = 5;
+  int streetblocklengths[4] = {1,1,1,1};
+  int carblocklengths[5] = {1,1,1,1,1};
+    MPI_Datatype streettypes[4] = {MPI_INT, MPI_INT,MPI_INT, MPI_INT};
+    MPI_Datatype cartypes[5] = {MPI_INT,MPI_INT,MPI_INT,MPI_INT, MPI_INT};
+    MPI_Aint     streetoffsets[4];
+    MPI_Aint     caroffsets[5];
+    streetoffsets[0] = offsetof(street_state_t, green);
+    streetoffsets[1] = offsetof(street_state_t, nb_cars);
+    streetoffsets[2] = offsetof(street_state_t, max);
+    streetoffsets[3] = offsetof(street_state_t, out);
+
+    caroffsets[0] = offsetof(car_state_t, street);
+    caroffsets[1] = offsetof(car_state_t, distance);
+    caroffsets[2] = offsetof(car_state_t, position);
+    caroffsets[3] = offsetof(car_state_t, arrived);
+    caroffsets[4] = offsetof(car_state_t, nb_streets);
+
+  MPI_Type_create_struct(streetnitems, streetblocklengths, streetoffsets, streettypes, &mpi_street_t);
+  MPI_Type_commit(&mpi_street_t);
+  MPI_Type_create_struct(carnitems, carblocklengths, caroffsets, caroffsets, &mpi_car_type);
+  MPI_Type_commit(&mpi_car_type);
+
+
   int i= 0;
   const int N_dyn = ((p->D + size -1)/size)*size;
-  const int N_dyn2 = ((s->A + size -1)/size)*size;
-  const int N_dyn3 = ((p->V + size -1)/size)*size;
-
+  // if(rang == 0)
+   //       printf("%d %d\n",p->D , N_dyn);
+  //printf("%d %d %d\n",size, N_dyn , p->D );
   int c;
   int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
-  int temp2 = ((rang +1) *(N_dyn2/size))  > s->A ? s->A : ((rang +1) *(N_dyn2/size)) ;
-  int temp3 = ((rang +1) *(N_dyn3/size))  > p->V ? p->V : ((rang +1) *(N_dyn3/size)) ;
-
   #pragma omp parallel for private(i,c) reduction(+:score) schedule(dynamic)
   for (int T = rang*(N_dyn/size);  T < temp; T++) {
     #ifdef DEBUG_SCORE
@@ -308,9 +332,11 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
     // Update light state for each intersection
     //#pragma omp parallel for
-    //itr s->A / size
-    for (i = rang*(N_dyn/size) ; i < temp2; i++) {
+    for (i = 0; i < s->A; i++) {
       	simulation_update_intersection_lights(s, i, T);
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_t, rang, MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
     }
 
 
@@ -321,8 +347,12 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
     // Update car state
     //#pragma omp parallel for reduction(+:score)
-    for (c = rang*(N_dyn/size); c < temp3; c++) {
+    for (c = 0; c < p->V; c++) {
 	score += simulation_update_car(p, c, T);
+    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_t, rang, MPI_COMM_WORLD);
+    MPI_Bcast(car_state, NB_CARS_MAX, mpi_car_t, rang, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
        // printf("%d , %d ,  %d ,%d\n",rang ,score, c , T);
     }
 
@@ -342,6 +372,8 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
 
   //printf("score in sim_run %d\n",score );
   //MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Type_free(&mpi_street_t);
+  MPI_Type_free(&mpi_car_t);
   return score;
 }
 
