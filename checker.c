@@ -17,9 +17,9 @@ static solution_t s;
 int main(int argc, char* argv[])
 {
     double t1 = 0.,t2 =0.,t3 =0.;
-    int score ,sum_score;
+    int score = 0,sum_score = 0;
     int rang =0, size;
-    struct timeval tv_begin, tv_end,inter;
+    //struct timeval tv_begin, tv_end,inter;
 
     if (argc != 3) {
         fprintf(stderr, "usage: %s problem solution\n", argv[0]);
@@ -51,6 +51,7 @@ int main(int argc, char* argv[])
     MPI_Barrier(MPI_COMM_WORLD);
 
 
+    printf("proc no°= %d score : %d\n",rang,score);
     MPI_Reduce(&score, &sum_score, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     //on a size score ....
     if(rang == 0)

@@ -282,6 +282,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   solution_write(stdout, s, p);
   #endif
 
+
   // Init state
   simulation_init(p);
 
@@ -318,8 +319,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     //#pragma omp parallel for reduction(+:score)
     for (c = 0; c < p->V; c++) {
 	score += simulation_update_car(p, c, T);
-       // printf("%d\n",score);
-
+       // printf("%d , %d ,  %d ,%d\n",rang ,score, c , T);
     }
 
     #ifdef DEBUG_SCORE
@@ -335,6 +335,9 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     #endif
   }
 
+    
+  //printf("score in sim_run %d\n",score );
+  //MPI_Barrier(MPI_COMM_WORLD);
   return score;
 }
 
@@ -359,8 +362,12 @@ int solution_score(solution_t* s, const problem_t* const p)
 {
   int score = 0;
 
+ // MPI_Barrier(MPI_COMM_WORLD);
   score = simulation_run(s, p);
-  //printf("%d\n",score );
+  //MPI_Barrier(MPI_COMM_WORLD);
+
+  //printf("score in sol_score %d\n",score );
+  //MPI_Barrier(MPI_COMM_WORLD);
 
 
 
