@@ -96,7 +96,7 @@ int solution_check(solution_t* const s, problem_t* const p )
   //printf("%d\n",errors );
 
   /* OK */
-  return errors;
+  return sum_errors;
 }
 
 
@@ -332,6 +332,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     simulation_print_state(p, T);
     #endif
   }
+
   return score;
 }
 
@@ -355,8 +356,13 @@ int tab_car[NB_CARS_MAX][2];
 int solution_score(solution_t* s, const problem_t* const p)
 {
   int score = 0;
-
+  int sum_score =0;
+  int size;
+  MPI_Comm_size( MPI_COMM_WORLD, &size );
   score = simulation_run(s, p);
+  printf("%d\n",score );
+  MPI_Reduce(&score, &sum_score, size, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
 
 
 
@@ -420,5 +426,5 @@ int solution_score(solution_t* s, const problem_t* const p)
   }
 #endif
 
-  return score;
+  return sum_score;
 }
