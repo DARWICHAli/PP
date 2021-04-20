@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
     double t1 = 0.,t2 =0.,t3 =0.;
     int score;
     int rang =0, size;
-    struct timeval tv_begin, tv_end,inter;
+    //struct timeval tv_begin, tv_end,inter;
 
     if (argc != 3) {
         fprintf(stderr, "usage: %s problem solution\n", argv[0]);
