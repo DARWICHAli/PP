@@ -290,6 +290,7 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   MPI_Type_commit(&mpi_street_type);
   MPI_Type_contiguous(5, MPI_INT, &mpi_car_type);
   MPI_Type_commit(&mpi_car_type);
+  //MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_type, 0, MPI_COMM_WORLD);
 
   int i= 0;
   const int N_dyn = ((p->D + size -1)/size)*size;
@@ -298,8 +299,10 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
   //printf("%d %d %d\n",size, N_dyn , p->D );
   int c;
   int temp = ((rang +1) *(N_dyn/size))  > p->D ? p->D : ((rang +1) *(N_dyn/size)) ;
+  //printf("sdf %d \n" ,rang);
   #pragma omp parallel for private(i,c) reduction(+:score) schedule(dynamic)
   for (int T = rang*(N_dyn/size);  T < temp; T++) {
+   // printf("FORRR %d %d\n",rang ,size);
     #ifdef DEBUG_SCORE
     printf("Score: %d\n", score);
     printf("- 1 Init:\n");
@@ -313,8 +316,15 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
         //MPI_Barrier(MPI_COMM_WORLD);
         //MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_t, rang, MPI_COMM_WORLD);
         //MPI_Barrier(MPI_COMM_WORLD);
+       //printf("dans le boucle : %d %d\n",rang ,size);
+       MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_type, 0, MPI_COMM_WORLD);
+
     }
-    MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_type, rang, MPI_COMM_WORLD);
+   
+   
+      //printf("%d %d\n",rang ,size);
+    //MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_type, 0, MPI_COMM_WORLD);
+    //printf("OK\n");
 
 
 
@@ -328,11 +338,12 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     for (c = 0; c < p->V; c++) {
 	score += simulation_update_car(p, c, T);
     //MPI_Barrier(MPI_COMM_WORLD);
-    //MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_t, rang, MPI_COMM_WORLD);
-    //MPI_Bcast(car_state, NB_CARS_MAX, mpi_car_t, rang, MPI_COMM_WORLD);
+    MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_type, 0, MPI_COMM_WORLD);
+    MPI_Bcast(car_state, NB_CARS_MAX, mpi_car_type, 0, MPI_COMM_WORLD);
     //MPI_Barrier(MPI_COMM_WORLD);
        // printf("%d , %d ,  %d ,%d\n",rang ,score, c , T);
     }
+    //printf("%d %d\n",rang ,size);
 
     #ifdef DEBUG_SCORE
     printf("- 3 cars (score now = %d):\n", score);
