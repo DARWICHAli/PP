@@ -327,9 +327,9 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     //#pragma omp parallel for
     for (i = 0; i < s->A; i++) {
       	simulation_update_intersection_lights(s, i, T);
-        MPI_Barrier(MPI_COMM_WORLD);
+        //MPI_Barrier(MPI_COMM_WORLD);
         MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_t, rang, MPI_COMM_WORLD);
-        MPI_Barrier(MPI_COMM_WORLD);
+        //MPI_Barrier(MPI_COMM_WORLD);
     }
 
 
@@ -342,10 +342,10 @@ int simulation_run(const solution_t* const s, const problem_t* const p)
     //#pragma omp parallel for reduction(+:score)
     for (c = 0; c < p->V; c++) {
 	score += simulation_update_car(p, c, T);
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
     MPI_Bcast(street_state, NB_STREETS_MAX, mpi_street_t, rang, MPI_COMM_WORLD);
     MPI_Bcast(car_state, NB_CARS_MAX, mpi_car_t, rang, MPI_COMM_WORLD);
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
        // printf("%d , %d ,  %d ,%d\n",rang ,score, c , T);
     }
 
